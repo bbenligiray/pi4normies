@@ -1,0 +1,72 @@
+{
+  "name": "pi4normies",
+  // Published by .github/workflows/image.yml. Must be a public package.
+  "image": "ghcr.io/bbenligiray/pi4normies:latest",
+  "remoteUser": "ubuntu",
+  "containerUser": "ubuntu",
+  "updateRemoteUserUID": false,
+
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb"
+  },
+
+  // Offered on the "create codespace" page; users add it once as a
+  // Codespaces user secret and it's injected into every new codespace.
+  "secrets": {
+    "OPENROUTER_API_KEY": {
+      "description": "Your OpenRouter API key. Pays for the AI assistant's usage.",
+      "documentationUrl": "https://openrouter.ai/settings/keys"
+    }
+  },
+
+  // Update pi, and don't let the assistant start until that's done.
+  "postCreateCommand": "post-create",
+  "waitFor": "postCreateCommand",
+
+  "customizations": {
+    "codespaces": {
+      // Nothing to open; the assistant starts in a terminal (.vscode/tasks.json).
+      "openFiles": []
+    },
+    "vscode": {
+      "extensions": [],
+      "settings": {
+        // Start the assistant automatically when the codespace opens.
+        "task.allowAutomaticTasks": "on",
+
+        "workbench.colorTheme": "Default Dark Modern",
+        "workbench.startupEditor": "none",
+        "workbench.tips.enabled": false,
+        "workbench.welcomePage.walkthroughs.openOnInstall": false,
+        "telemetry.telemetryLevel": "off",
+
+        // Keep VS Code's own AI features out of the way.
+        "chat.disableAIFeatures": true,
+        "chat.commandCenter.enabled": false,
+
+        // Users only need input/ and output/; hide the template's plumbing.
+        "files.exclude": {
+          "**/.git": true,
+          ".devcontainer": true,
+          ".github": true,
+          ".vscode": true,
+          "config": true,
+          "extensions": true,
+          "scripts": true,
+          "Dockerfile": true,
+          "README.md": true,
+          ".gitignore": true,
+          "**/.gitkeep": true
+        },
+
+        // No git UI: nothing here should ever be committed.
+        "git.enabled": false,
+        "git.openRepositoryInParentFolders": "never",
+
+        "terminal.integrated.fontSize": 15,
+        "terminal.integrated.enablePersistentSessions": false
+      }
+    }
+  }
+}

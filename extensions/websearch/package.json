@@ -1,0 +1,9 @@
+{
+  "name": "pi-websearch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web search tool for pi using Perplexity via OpenRouter",
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}

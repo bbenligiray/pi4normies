@@ -1,0 +1,34 @@
+#!/bin/bash
+# Started automatically in a terminal when the codespace opens
+# (.vscode/tasks.json). Checks for the OpenRouter key, then runs pi, and
+# offers to restart it if it exits.
+
+bold=$'\e[1m'; reset=$'\e[0m'
+
+if [ -z "$OPENROUTER_API_KEY" ]; then
+    cat <<MSG
+
+${bold}One more step before you can start${reset}
+
+This workspace needs your OpenRouter key, and it hasn't been set up yet.
+
+  1. Create a key at   https://openrouter.ai/settings/keys
+     (sign up and add some credit first if you haven't).
+  2. Open              https://github.com/settings/codespaces
+     and under "Codespaces secrets" click "New secret":
+       Name:   OPENROUTER_API_KEY
+       Value:  the key from step 1
+       Repository access:  select this repository
+  3. Close this tab and start a new job from the same link as before.
+     (This is only needed once; new jobs will have the key from now on.)
+
+MSG
+    read -rp "Press Enter to close this message..." _
+    exit 0
+fi
+
+while true; do
+    pi "$@"
+    echo
+    read -rp "The assistant was closed. Press Enter to start it again..." _
+done

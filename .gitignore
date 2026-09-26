@@ -1,0 +1,5 @@
+# Users' files; only the empty folders are part of the template.
+input/*
+output/*
+!input/.gitkeep
+!output/.gitkeep
