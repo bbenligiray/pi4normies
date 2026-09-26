@@ -1,104 +1,37 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
+import {
+	chromeError,
+	chromePath,
+	clampWait,
+	DEFAULT_HEIGHT,
+	DEFAULT_WAIT_MS,
+	DEFAULT_WIDTH,
+	interestingStderr,
+	MAX_WAIT_MS,
+	normalizeUrl,
+	runChrome,
+	truncateToFile,
+} from "./chrome.ts";
+import { registerWebFetch } from "./fetch.ts";
 
 // Browser tools backed by headless Chrome, so the agent can look at frontends
-// (e.g. a dev server running on localhost inside the container).
+// (e.g. a dev server running on localhost inside the container) and read web
+// pages.
 //
 //   browser_screenshot  render a URL and return a PNG screenshot
 //   browser_dom         render a URL and return the serialized DOM after JS ran
+//   web_fetch           read a URL as clean markdown (fetch.ts)
 //
-// Both drive the Chrome CLI directly (no puppeteer dependency), one fresh
+// Chrome is driven via its CLI directly (no puppeteer dependency), one fresh
 // profile per call. pi resizes oversized images in tool results itself, so
 // screenshots are returned as-is.
 //
 // Configuration (environment variables):
 //   CHROME_PATH   optional - Chrome/Chromium binary
 //                 (default: /usr/bin/google-chrome-stable, set in the Dockerfile)
-
-const DEFAULT_CHROME = "/usr/bin/google-chrome-stable";
-const DEFAULT_WIDTH = 1280;
-const DEFAULT_HEIGHT = 800;
-const DEFAULT_WAIT_MS = 3000;
-const MAX_WAIT_MS = 30_000;
-const EXEC_TIMEOUT_MS = 60_000;
-const MAX_DOM_CHARS = 100_000;
-
-function chromePath(): string {
-	return process.env.CHROME_PATH || DEFAULT_CHROME;
-}
-
-function normalizeUrl(url: string): string {
-	// Bare paths are almost certainly local files the agent wants to preview.
-	if (url.startsWith("/")) return `file://${url}`;
-	if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) return `http://${url}`;
-	return url;
-}
-
-function clampWait(ms: number | undefined): number {
-	const v = ms ?? DEFAULT_WAIT_MS;
-	return Math.max(0, Math.min(MAX_WAIT_MS, Math.floor(v)));
-}
-
-interface ChromeRunOptions {
-	url: string;
-	width: number;
-	height: number;
-	waitMs: number;
-	extraArgs: string[];
-	signal?: AbortSignal;
-}
-
-// Run headless Chrome once. Returns stdout and the temporary directory the
-// process ran in (its cwd, where --screenshot writes); the caller must clean
-// it up.
-async function runChrome(
-	pi: ExtensionAPI,
-	opts: ChromeRunOptions,
-): Promise<{ stdout: string; stderr: string; code: number; dir: string }> {
-	const dir = await mkdtemp(join(tmpdir(), "pi-browser-"));
-	const args = [
-		"--headless=new",
-		// The container typically runs without the kernel features Chrome's
-		// sandbox needs; this is a dev container, so trade it for reliability.
-		"--no-sandbox",
-		"--disable-gpu",
-		// Docker's default /dev/shm is tiny; fall back to /tmp for shared memory.
-		"--disable-dev-shm-usage",
-		"--hide-scrollbars",
-		"--force-device-scale-factor=1",
-		"--no-first-run",
-		"--no-default-browser-check",
-		"--disable-extensions",
-		`--user-data-dir=${join(dir, "profile")}`,
-		`--window-size=${opts.width},${opts.height}`,
-		// Advances virtual time so timers/animations/fetches in SPAs settle
-		// before capture, without literally sleeping that long.
-		`--virtual-time-budget=${opts.waitMs}`,
-		...opts.extraArgs,
-		opts.url,
-	];
-	const result = await pi.exec(chromePath(), args, {
-		cwd: dir,
-		signal: opts.signal,
-		timeout: EXEC_TIMEOUT_MS,
-	});
-	return { stdout: result.stdout, stderr: result.stderr, code: result.code, dir };
-}
-
-// Chrome is chatty on stderr even on success; keep only lines that look like
-// actual problems so the model isn't distracted by dbus/GPU noise.
-function interestingStderr(stderr: string): string {
-	return stderr
-		.split("\n")
-		.filter((l) => /ERR_|FATAL|Failed to|cannot|not found|No such/i.test(l))
-		.filter((l) => !/dbus|DBus|gpu|GPU|vaapi|sandbox|fontconfig/i.test(l))
-		.slice(0, 10)
-		.join("\n")
-		.trim();
-}
 
 export default function (pi: ExtensionAPI) {
 	pi.registerTool({
@@ -153,7 +86,7 @@ export default function (pi: ExtensionAPI) {
 				try {
 					png = await readFile(join(run.dir, "screenshot.png"));
 				} catch {
-					const err = interestingStderr(run.stderr) || run.stderr.trim().split("\n").slice(-5).join("\n");
+					const err = chromeError(run.stderr);
 					throw new Error(
 						`browser_screenshot: Chrome (${chromePath()}) exited with code ${run.code} and produced no screenshot for ${url}.` +
 							(err ? `\n${err}` : ""),
@@ -183,7 +116,8 @@ export default function (pi: ExtensionAPI) {
 		description:
 			"Render a web page in headless Chrome (JavaScript executed) and return the " +
 			"resulting HTML. Useful for checking what a SPA actually rendered, or " +
-			"reading text/links when a screenshot is not enough.",
+			"inspecting markup. To read a page's text content, prefer web_fetch. " +
+			"Large DOMs are truncated; the full HTML is saved to a temp file.",
 		promptSnippet: "Get the JS-rendered HTML of a URL with headless Chrome",
 		parameters: Type.Object({
 			url: Type.String({ description: "URL to render (same forms as browser_screenshot)." }),
@@ -211,29 +145,26 @@ export default function (pi: ExtensionAPI) {
 			});
 			await rm(run.dir, { recursive: true, force: true }).catch(() => {});
 
-			let html = run.stdout.trim();
+			const html = run.stdout.trim();
 			if (!html) {
-				const err = interestingStderr(run.stderr) || run.stderr.trim().split("\n").slice(-5).join("\n");
+				const err = chromeError(run.stderr);
 				throw new Error(
 					`browser_dom: Chrome (${chromePath()}) exited with code ${run.code} and produced no DOM for ${url}.` +
 						(err ? `\n${err}` : ""),
 				);
 			}
 
-			let truncated = false;
-			if (html.length > MAX_DOM_CHARS) {
-				html = html.slice(0, MAX_DOM_CHARS);
-				truncated = true;
-			}
-
-			let text = `DOM of ${url}${truncated ? ` (truncated to ${MAX_DOM_CHARS} chars)` : ""}:\n\n${html}`;
+			const out = await truncateToFile(html, "dom.html");
+			let text = `DOM of ${url}:\n\n${out.text}`;
 			const err = interestingStderr(run.stderr);
 			if (err) text += `\n\nChrome reported:\n${err}`;
 
 			return {
 				content: [{ type: "text", text }],
-				details: { url, waitMs, truncated, chars: html.length },
+				details: { url, waitMs, truncated: out.truncated, fullOutputPath: out.fullOutputPath, chars: html.length },
 			};
 		},
 	});
+
+	registerWebFetch(pi);
 }

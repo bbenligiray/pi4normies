@@ -3,3 +3,6 @@ input/*
 output/*
 !input/.gitkeep
 !output/.gitkeep
+
+# Installed in the image (Dockerfile), not committed.
+node_modules/

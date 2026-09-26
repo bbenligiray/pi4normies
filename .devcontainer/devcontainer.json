@@ -57,6 +57,7 @@
           "Dockerfile": true,
           "README.md": true,
           ".gitignore": true,
+          ".dockerignore": true,
           "**/.gitkeep": true
         },
 

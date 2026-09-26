@@ -19,7 +19,10 @@ This workspace needs your OpenRouter key, and it hasn't been set up yet.
        Name:   OPENROUTER_API_KEY
        Value:  the key from step 1
        Repository access:  select this repository
-  3. Close this tab and start a new job from the same link as before.
+  3. Restart this workspace so it picks up the key:
+     open       https://github.com/codespaces
+     click "..." next to this workspace, choose "Stop codespace",
+     then click the workspace's name to open it again.
      (This is only needed once; new jobs will have the key from now on.)
 
 MSG

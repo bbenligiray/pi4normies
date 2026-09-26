@@ -2,12 +2,16 @@
 # Runs once when a codespace is created (devcontainer.json postCreateCommand).
 # The image is rebuilt daily, but scheduled workflows can lapse, so make sure
 # every new codespace gets the latest pi regardless of how old the image is.
+# The assistant doesn't start until this finishes (waitFor in
+# devcontainer.json), so time-box the network calls: a slow npm registry should
+# mean a slightly older pi, not a codespace that never becomes usable.
 PKG=@earendil-works/pi-coding-agent
 installed=$(pi --version 2>/dev/null)
-latest=$(npm view "$PKG" version 2>/dev/null)
+latest=$(timeout 30 npm view "$PKG" version 2>/dev/null)
 if [ -n "$latest" ] && [ "$installed" != "$latest" ]; then
     echo "Updating pi $installed -> $latest..."
-    npm install -g --ignore-scripts "$PKG@latest" || echo "pi update failed; keeping $installed"
+    timeout 180 npm install -g --ignore-scripts "$PKG@$latest" \
+        || echo "pi update failed; keeping $installed"
 else
     echo "pi ${installed:-?} is up to date."
 fi

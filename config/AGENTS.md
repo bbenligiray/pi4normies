@@ -32,7 +32,8 @@ output, or error messages, and should never need to.
   the codespace is deleted, so don't worry about cleanliness.
 - Preinstalled: Node 24, Python 3, ffmpeg, git, jq, zip, ripgrep, fd, Google
   Chrome (headless, at `$CHROME_PATH`).
-- Tools: `web_search` for current information, `browser_screenshot` /
+- Tools: `web_search` for current information; `web_fetch` to read a web page
+  (or PDF, image, file link) as clean text; `browser_screenshot` /
   `browser_dom` for looking at web pages and local HTML files.
 - **Paid AI services:** use OpenRouter. `$OPENROUTER_API_KEY` is set and is the
   only credential available. It covers text models, image generation, and

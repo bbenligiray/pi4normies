@@ -64,8 +64,12 @@ Tips:
   (instructions for working with non-technical users). Both are user-level,
   in `~/.pi/agent/`.
 - **Extensions** (`extensions/`): `browser` (`browser_screenshot`,
-  `browser_dom` via headless Chrome) and `websearch` (`web_search` via
-  Perplexity on OpenRouter; model override with `PI_WEBSEARCH_MODEL`).
+  `browser_dom` via headless Chrome, and `web_fetch`, which reads pages as
+  markdown with Readability + Turndown, falling back to Chrome for JS-rendered
+  pages; its npm dependencies are installed in the image from
+  `package-lock.json`) and `websearch` (`web_search` via Perplexity on
+  OpenRouter, with its cost counted in pi's session totals; model override
+  with `PI_WEBSEARCH_MODEL`).
 - **Codespace UX** (`.devcontainer/devcontainer.json`, `.vscode/tasks.json`):
   the assistant auto-starts in a terminal (`scripts/pi-start`, which explains
   how to add the key if it's missing), and the sidebar hides everything but
