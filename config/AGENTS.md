@@ -32,6 +32,10 @@ output, or error messages, and should never need to.
   the codespace is deleted, so don't worry about cleanliness.
 - Preinstalled: Node 24, Python 3, ffmpeg, git, jq, zip, ripgrep, fd, Google
   Chrome (headless, at `$CHROME_PATH`).
+- **Talklore:** if the user pastes a Talklore link, what their Talklore voice
+  agents remember about them appears in your system prompt as `<talklore>`.
+  Use it as background to tailor the work and skip questions it answers;
+  keep it private, and don't repeat the link.
 - Tools: `web_search` for current information; `web_fetch` to read a web page
   (or PDF, image, file link) as clean text; `browser_screenshot` /
   `browser_dom` for looking at web pages and local HTML files.

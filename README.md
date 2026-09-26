@@ -69,7 +69,9 @@ Tips:
   pages; its npm dependencies are installed in the image from
   `package-lock.json`) and `websearch` (`web_search` via Perplexity on
   OpenRouter, with its cost counted in pi's session totals; model override
-  with `PI_WEBSEARCH_MODEL`).
+  with `PI_WEBSEARCH_MODEL`), and `talklore` (a pasted Talklore export link
+  is fetched and kept in the system prompt, refreshed while the link is
+  live; talklore-one serves the export at `/export/<token>`).
 - **Codespace UX** (`.devcontainer/devcontainer.json`, `.vscode/tasks.json`):
   the assistant auto-starts in a terminal (`scripts/pi-start`, which explains
   how to add the key if it's missing), and the sidebar hides everything but

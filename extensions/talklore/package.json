@@ -1,0 +1,9 @@
+{
+  "name": "pi-talklore",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Keeps the user's Talklore memory (from a pasted export link) in pi's system prompt",
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}

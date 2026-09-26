@@ -3,7 +3,8 @@
   "defaultModel": "anthropic/claude-opus-5.5",
   "extensions": [
     "/opt/pi/extensions/browser",
-    "/opt/pi/extensions/websearch"
+    "/opt/pi/extensions/websearch",
+    "/opt/pi/extensions/talklore"
   ],
   "theme": "dark",
   "quietStartup": true,
