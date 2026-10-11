@@ -54,6 +54,7 @@
           "config": true,
           "extensions": true,
           "scripts": true,
+          "telegram": true,
           "Dockerfile": true,
           "README.md": true,
           ".gitignore": true,

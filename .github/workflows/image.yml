@@ -71,6 +71,19 @@ jobs:
           docker run --rm pi4normies:test bash -c \
             'google-chrome-stable --version && ffmpeg -version | head -1 && python3 --version && pi --version'
 
+      # The Telegram bot's entry point (scripts/pi-telegram): pi must be the
+      # only thing on stdout, since that's the RPC stream the bot reads.
+      - name: Smoke test (Telegram job container)
+        run: |
+          set -o pipefail
+          out=$( (echo '{"id":"s","type":"get_state"}'; sleep 20) \
+            | docker run --rm -i -e OPENROUTER_API_KEY=dummy pi4normies:test \
+                timeout 90 pi-telegram )
+          echo "$out" | head -c 2000; echo
+          echo "$out" | head -1 | jq -e '.id == "s" and .success == true'
+          docker run --rm pi4normies:test bash -c \
+            'pi-telegram </dev/null >/dev/null 2>&1; grep -q Telegram ~/.pi/agent/AGENTS.md && ls -d ~/job/input ~/job/output'
+
       - name: Push
         run: |
           docker tag pi4normies:test ${{ steps.name.outputs.image }}:latest

@@ -1,0 +1,41 @@
+# The bot and the local Telegram Bot API server. From this directory:
+#   docker compose up -d --build
+# Job containers are started by the bot through the Docker socket; they are
+# not part of this file. See README.md.
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      TELEGRAM_API_ROOT: http://telegram-bot-api:8081
+      DATA_DIR: /data
+      USERS_FILE: /config/users.json
+    volumes:
+      # To start and remove job containers. This is root-equivalent access
+      # to this machine: run the bot on a machine dedicated to it.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # users.json: the allowlist and each user's OpenRouter key. The whole
+      # directory is mounted, so edits are picked up without a restart.
+      - ./config:/config:ro
+      - bot-data:/data
+      # Files users send, as stored by the Bot API server (same path in both).
+      - telegram-files:/var/lib/telegram-bot-api
+    depends_on: [telegram-bot-api]
+
+  # Telegram's own Bot API server, run locally: files up to 2 GB each way
+  # instead of 20 MB down and 50 MB up.
+  telegram-bot-api:
+    image: aiogram/telegram-bot-api:latest
+    restart: unless-stopped
+    environment:
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID:?set TELEGRAM_API_ID in .env}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH:?set TELEGRAM_API_HASH in .env}
+      TELEGRAM_LOCAL: "1"
+    volumes:
+      - telegram-files:/var/lib/telegram-bot-api
+
+volumes:
+  bot-data:
+  telegram-files:

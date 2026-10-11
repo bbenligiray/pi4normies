@@ -1,0 +1,15 @@
+#!/bin/bash
+# Main process of a job container started by the Telegram bot (telegram/).
+# pi speaks RPC on stdin/stdout and the bot is attached to them, so nothing
+# but pi may write to stdout: everything else goes to stderr.
+exec 3>&1 1>&2
+
+mkdir -p ~/job/input ~/job/output
+# Instructions for working over Telegram instead of in a codespace.
+cp "${PI4NORMIES_CONFIG:-/opt/pi/config}/AGENTS.telegram.md" ~/.pi/agent/AGENTS.md
+post-create
+
+# --continue: if pi dies (or the machine reboots), the container restarts and
+# the conversation picks up where it was.
+cd ~/job
+exec pi --mode rpc --continue 1>&3 3>&-

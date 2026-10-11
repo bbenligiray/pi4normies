@@ -6,6 +6,9 @@ and so on. Nothing to install; it runs in a
 [GitHub Codespace](https://github.com/features/codespaces), works on any
 computer, and is thrown away when you're done.
 
+**Were you given access to the Telegram bot instead?** Then none of the steps
+below apply: just message the bot, and send `/help` to see how it works.
+
 ## Before your first job (once)
 
 1. **GitHub account.** Sign up at https://github.com/signup if you don't have
@@ -76,6 +79,13 @@ Tips:
   the assistant auto-starts in a terminal (`scripts/pi-start`, which explains
   how to add the key if it's missing), and the sidebar hides everything but
   `input/` and `output/`.
+- **Telegram bot** (`telegram/`, see its README): the same image as
+  throwaway per-user containers on a machine of your own, used from a
+  Telegram chat. Containers remove themselves 24 hours after they start
+  unless extended. Users are allowlisted in `telegram/config/users.json`,
+  with an OpenRouter key each. In that mode the image's entry point is
+  `scripts/pi-telegram` (pi in RPC mode), with `config/AGENTS.telegram.md`
+  as the agent's instructions. Keep that file in step with `AGENTS.md`.
 - **Billing:** the repo is on a personal account, so each user's Codespaces
   usage goes to their own GitHub account (free monthly quota first), and AI
   usage to their own OpenRouter key.

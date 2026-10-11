@@ -1,3 +1,5 @@
 # Dependencies are installed in the image from the lockfiles.
 **/node_modules
 .git
+# The Telegram bot is its own image (telegram/Dockerfile).
+telegram

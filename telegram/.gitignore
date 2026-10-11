@@ -1,0 +1,4 @@
+node_modules/
+# Secrets: the bot token, and users' OpenRouter keys.
+.env
+config/users.json

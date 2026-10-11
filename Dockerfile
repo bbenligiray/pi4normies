@@ -48,9 +48,12 @@ COPY extensions /opt/pi/extensions
 # The browser extension's web_fetch needs a few npm packages (Readability,
 # linkedom, Turndown), pinned by its package-lock.json.
 RUN cd /opt/pi/extensions/browser && npm ci --omit=dev --ignore-scripts --no-audit --no-fund
-COPY --chmod=755 scripts/pi-start scripts/post-create /usr/local/bin/
+# pi-telegram is the entry point when the Telegram bot (telegram/) runs the
+# image as a job container instead of a codespace.
+COPY --chmod=755 scripts/pi-start scripts/post-create scripts/pi-telegram /usr/local/bin/
 # User-level pi config: OpenRouter + default model, bundled extensions, and the
-# standing instructions (AGENTS.md) for working with non-technical users.
+# standing instructions (AGENTS.md) for working with non-technical users;
+# pi-telegram swaps in AGENTS.telegram.md.
 COPY config /opt/pi/config
 
 USER ubuntu

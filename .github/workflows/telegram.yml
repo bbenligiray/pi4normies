@@ -1,0 +1,45 @@
+name: telegram
+
+# Type-checks and tests the Telegram bot (telegram/), and checks that its
+# image builds. The tests need neither Docker, Telegram nor an AI key: they
+# run the bot against fake Bot API and Docker Engine servers with a scripted
+# pi, plus a few checks against the real pi (no AI calls). The live test
+# (npm run test:live, real AI calls) is run by hand.
+# test/pi-contract.test.ts also covers scripts/pi-telegram and the
+# instructions it installs, so changes to those run this too.
+on:
+  push:
+    branches: [main]
+    paths:
+      - telegram/**
+      - scripts/pi-telegram
+      - config/AGENTS.telegram.md
+      - .github/workflows/telegram.yml
+  pull_request:
+    paths:
+      - telegram/**
+      - scripts/pi-telegram
+      - config/AGENTS.telegram.md
+      - .github/workflows/telegram.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: telegram
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      # For test/pi-contract.test.ts: what the bot relies on from real pi.
+      - run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+      - run: npm run check
+      - run: npm test
+      - run: docker build -t pi4normies-telegram .
