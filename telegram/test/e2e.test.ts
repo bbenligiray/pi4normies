@@ -287,6 +287,19 @@ test("/done sends unsent files, then removes the workspace", async () => {
 	assert.equal(jobDirs().length, 0);
 });
 
+test("/done says so when every file was already sent", async () => {
+	let from = tg.sent.length;
+	tg.text(USER, "please make file");
+	await tg.waitFor(USER, (s) => s.method === "sendDocument", from);
+	from = tg.sent.length;
+	tg.text(USER, "/done");
+	const confirm = await tg.waitFor(USER, hasText(/Finish this job/), from);
+	tg.press(USER, confirm.reply_markup!.inline_keyboard![0][0].callback_data);
+	await tg.waitFor(USER, hasText(/All done.*already received all its files/), from);
+	assert.equal(tg.sent.slice(from).filter((s) => s.method === "sendDocument").length, 0);
+	assert.equal(jobDirs().length, 0);
+});
+
 test("a job warns before expiring, then removes itself", { timeout: 60_000 }, async () => {
 	let from = tg.sent.length;
 	tg.text(USER, "new job");
@@ -302,7 +315,9 @@ test("a job warns before expiring, then removes itself", { timeout: 60_000 }, as
 	// ...so it warns again and expires about 30 s after the extension.
 	from = tg.sent.length;
 	await tg.waitFor(USER, hasText(/removes itself in about/), from, 30_000);
-	await tg.waitFor(USER, hasText(/reached the end of its time/), from, 30_000);
+	const farewell = await tg.waitFor(USER, hasText(/reached the end of its time/), from, 30_000);
+	// It made no files, so there's nothing to say about them.
+	assert.doesNotMatch(farewell.text!, /files/);
 	assert.ok(Date.now() - extendedAt >= 28_000);
 	assert.equal(jobDirs().length, 0);
 });

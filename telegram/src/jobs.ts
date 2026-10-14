@@ -538,7 +538,10 @@ export class Job {
 		let sent = 0;
 		let failed = false;
 		try {
-			if ((await this.box.status()).running) sent = await this.deliverOutputs("new");
+			// Listing output/ needs a running container; without one, its files
+			// can't be collected (and the user should know).
+			if (!(await this.box.status()).running) throw new Error("the container isn't running");
+			sent = await this.deliverOutputs("new");
 		} catch (e) {
 			failed = true;
 			console.error(`job ${this.rec.boxId}: sending the last files failed:`, e);
@@ -547,7 +550,9 @@ export class Job {
 			? " I couldn't collect its last files, sorry."
 			: sent > 0
 				? " Its files are above."
-				: "";
+				: Object.keys(this.rec.sent).length > 0
+					? " You've already received all its files."
+					: "";
 		const text = {
 			done: `✅ All done. This workspace has removed itself.${files} Send a message any time to start a new job.`,
 			expired: `⏳ This workspace reached the end of its time and has removed itself.${files} Send a message any time to start a new job.`,
