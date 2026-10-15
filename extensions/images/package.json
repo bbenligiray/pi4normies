@@ -1,0 +1,9 @@
+{
+  "name": "pi-images",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Drops the oldest images from what's sent to the model so requests stay under the provider's image size limit",
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}

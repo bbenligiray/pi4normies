@@ -64,6 +64,9 @@ export function explainError(message: string): string {
 	if (/\b429\b|rate.?limit|overloaded|\b529\b/i.test(message)) {
 		return "The AI service is very busy right now. Please wait a minute and send your message again.";
 	}
+	if (/\b413\b|payload.?too.?large|image content cannot exceed|too many images/i.test(message)) {
+		return "Our conversation has grown too big for the AI service (usually from lots of images or screenshots), so sending again won't help. Send /new to start over with a fresh workspace; I'll send you the files made so far first.";
+	}
 	return `Something went wrong on the AI service's side. Please send your message again in a moment.\n\n(Details: ${message.slice(0, 300)})`;
 }
 

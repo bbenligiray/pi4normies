@@ -55,7 +55,7 @@ Tips:
 
 - **Image:** `.github/workflows/image.yml` builds the `Dockerfile` and pushes
   `ghcr.io/bbenligiray/pi4normies:latest` on changes to `main`, daily, and on
-  manual dispatch, after a smoke test (pi starts with both extensions and the
+  manual dispatch, after a smoke test (pi starts with the bundled extensions and the
   default model). After the first push, make the package **public**
   (github.com/users/bbenligiray/packages/container/pi4normies/settings), or
   codespaces can't pull it.
@@ -74,7 +74,12 @@ Tips:
   OpenRouter, with its cost counted in pi's session totals; model override
   with `PI_WEBSEARCH_MODEL`), and `talklore` (a pasted Talklore export link
   is fetched and kept in the system prompt, refreshed while the link is
-  live; talklore-one serves the export at `/export/<token>`).
+  live; talklore-one serves the export at `/export/<token>`), and `images`
+  (once the images in the conversation pass 16 MB of base64 or 50, or
+  lower limits pi's model catalog has for the current model, the oldest are
+  replaced by a note in what's sent to the model, down to half that;
+  otherwise screenshots pile up until OpenRouter rejects every request with
+  a 413 and the session is stuck).
 - **Codespace UX** (`.devcontainer/devcontainer.json`, `.vscode/tasks.json`):
   the assistant auto-starts in a terminal (`scripts/pi-start`, which explains
   how to add the key if it's missing), and the sidebar hides everything but

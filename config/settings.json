@@ -4,7 +4,8 @@
   "extensions": [
     "/opt/pi/extensions/browser",
     "/opt/pi/extensions/websearch",
-    "/opt/pi/extensions/talklore"
+    "/opt/pi/extensions/talklore",
+    "/opt/pi/extensions/images"
   ],
   "theme": "dark",
   "quietStartup": true,
